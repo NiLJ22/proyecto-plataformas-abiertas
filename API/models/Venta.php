@@ -1,56 +1,57 @@
 <?php
+require_once __DIR__ . '/../database/db.php';
+
 class Venta {
     private $conn;
-    private $table = 'Ventas';
+    private $id_venta;
+    private $cliente;
+    private $fecha;
+    private $total;
 
-    public $id;
-    public $prenda_id;
-    public $fecha;
-    public $cantidad;
+    public function __construct($id_venta = null, $cliente = null, $fecha = null, $total = null) {
+        $this->id_venta = $id_venta;
+        $this->cliente = $cliente;
+        $this->fecha = $fecha;
+        $this->total = $total;
 
-    public function __construct() {
+        if (is_null($id_venta)) {
+            $database = new Database();
+            $this->conn = $database->getConnection();
+        }
+    }
+
+    public function getById($id) {
         $database = new Database();
         $this->conn = $database->getConnection();
-    }
-
-    public function read() {
-        $query = 'SELECT * FROM ' . $this->table;
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function readOne($id) {
-        $query = 'SELECT * FROM ' . $this->table . ' WHERE id = ? LIMIT 0,1';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $id);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public function create($input) {
-        $query = 'INSERT INTO ' . $this->table . ' SET prenda_id = :prenda_id, fecha = :fecha, cantidad = :cantidad';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':prenda_id', $input['prenda_id']);
-        $stmt->bindParam(':fecha', $input['fecha']);
-        $stmt->bindParam(':cantidad', $input['cantidad']);
-        $stmt->execute();
-    }
-
-    public function update($id, $input) {
-        $query = 'UPDATE ' . $this->table . ' SET prenda_id = :prenda_id, fecha = :fecha, cantidad = :cantidad WHERE id = :id';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':prenda_id', $input['prenda_id']);
-        $stmt->bindParam(':fecha', $input['fecha']);
-        $stmt->bindParam(':cantidad', $input['cantidad']);
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-    }
-
-    public function delete($id) {
-        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id';
+        $query = 'SELECT id_venta, cliente, fecha, total FROM venta WHERE id_venta = :id';
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
         $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return new Venta($row['id_venta'], $row['cliente'], $row['fecha'], $row['total']);
+    }
+
+    // Getters for venta properties
+    public function getId() {
+        return $this->id_venta;
+    }
+
+    public function getCliente() {
+        return $this->cliente;
+    }
+
+    public function getFecha() {
+        return $this->fecha;
+    }
+
+    public function getTotal() {
+        return $this->total;
     }
 }
+?>
