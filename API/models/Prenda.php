@@ -1,56 +1,57 @@
 <?php
+require_once __DIR__ . '/../database/db.php';
+
 class Prenda {
     private $conn;
-    private $table = 'Prendas';
+    private $id_prenda;
+    private $nombre;
+    private $tipo;
+    private $precio;
 
-    public $id;
-    public $marca_id;
-    public $nombre;
-    public $stock;
+    public function __construct($id_prenda = null, $nombre = null, $tipo = null, $precio = null) {
+        $this->id_prenda = $id_prenda;
+        $this->nombre = $nombre;
+        $this->tipo = $tipo;
+        $this->precio = $precio;
 
-    public function __construct() {
+        if (is_null($id_prenda)) {
+            $database = new Database();
+            $this->conn = $database->getConnection();
+        }
+    }
+
+    public function getById($id) {
         $database = new Database();
         $this->conn = $database->getConnection();
-    }
-
-    public function read() {
-        $query = 'SELECT * FROM ' . $this->table;
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function readOne($id) {
-        $query = 'SELECT * FROM ' . $this->table . ' WHERE id = ? LIMIT 0,1';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $id);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public function create($input) {
-        $query = 'INSERT INTO ' . $this->table . ' SET marca_id = :marca_id, nombre = :nombre, stock = :stock';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':marca_id', $input['marca_id']);
-        $stmt->bindParam(':nombre', $input['nombre']);
-        $stmt->bindParam(':stock', $input['stock']);
-        $stmt->execute();
-    }
-
-    public function update($id, $input) {
-        $query = 'UPDATE ' . $this->table . ' SET marca_id = :marca_id, nombre = :nombre, stock = :stock WHERE id = :id';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':marca_id', $input['marca_id']);
-        $stmt->bindParam(':nombre', $input['nombre']);
-        $stmt->bindParam(':stock', $input['stock']);
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-    }
-
-    public function delete($id) {
-        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id';
+        $query = 'SELECT id_prenda, nombre, tipo, precio FROM prenda WHERE id_prenda = :id';
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
         $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return new Prenda($row['id_prenda'], $row['nombre'], $row['tipo'], $row['precio']);
+    }
+
+    // Getters for prenda properties
+    public function getId() {
+        return $this->id_prenda;
+    }
+
+    public function getNombre() {
+        return $this->nombre;
+    }
+
+    public function getTipo() {
+        return $this->tipo;
+    }
+
+    public function getPrecio() {
+        return $this->precio;
     }
 }
+?>
