@@ -1,50 +1,58 @@
 <?php
+require_once __DIR__ . '/../database/db.php';
+
 class Marca {
     private $conn;
-    private $table = 'Marcas';
+    private $id_marca;
+    private $nombre;
+    private $descripcion;
+    private $estilo;
 
-    public $id;
-    public $nombre;
+    public function __construct($id_marca = null, $nombre = null, $descripcion = null, $estilo = null) {
+        $this->id_marca = $id_marca;
+        $this->nombre = $nombre;
+        $this->descripcion = $descripcion;
+        $this->estilo = $estilo;
 
-    public function __construct() {
+        if (is_null($id_marca)) {
+            $database = new Database();
+            $this->conn = $database->getConnection();
+        }
+    }
+
+    public function getById($id) {
+
         $database = new Database();
         $this->conn = $database->getConnection();
-    }
-
-    public function read() {
-        $query = 'SELECT * FROM ' . $this->table;
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function readOne($id) {
-        $query = 'SELECT * FROM ' . $this->table . ' WHERE id = ? LIMIT 0,1';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $id);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public function create($input) {
-        $query = 'INSERT INTO ' . $this->table . ' SET nombre = :nombre';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':nombre', $input['nombre']);
-        $stmt->execute();
-    }
-
-    public function update($id, $input) {
-        $query = 'UPDATE ' . $this->table . ' SET nombre = :nombre WHERE id = :id';
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':nombre', $input['nombre']);
-        $stmt->bindParam(':id', $id);
-        $stmt->execute();
-    }
-
-    public function delete($id) {
-        $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id';
+        $query = 'SELECT id_marca, nombre, descripcion, estilo FROM marca WHERE id_marca = :id';
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
         $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return new Marca($row['id_marca'], $row['nombre'], $row['descripcion'], $row['estilo']);
+    }
+
+    // Getters for marca properties
+    public function getId() {
+        return $this->id_marca;
+    }
+
+    public function getNombre() {
+        return $this->nombre;
+    }
+
+    public function getDescripcion() {
+        return $this->descripcion;
+    }
+
+    public function getEstilo() {
+        return $this->estilo;
     }
 }
+?>
